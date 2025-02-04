@@ -1,0 +1,119 @@
+plugins {
+    id "java"
+    id "io.quarkus"
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
+    id "org.openapi.generator" version "${openApiGeneratorPluginVersion}"
+    id "jacoco"
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Core dependencies
+    implementation "com.google.googlejavaformat:google-java-format:$googleJavaFormatVersion"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    implementation "org.projectlombok:lombok-mapstruct-binding:${mapstructLombokBindingVersion}"
+    implementation "org.slf4j:slf4j-api"
+    implementation "org.jboss.slf4j:slf4j-jboss-logmanager"
+    implementation "io.swagger:swagger-annotations:${swaggerAnnotationsVersion}"
+
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // Quarkus dependencies
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation "io.quarkus:quarkus-smallrye-openapi"
+    implementation "io.quarkus:quarkus-rest-jackson"
+    implementation "io.quarkus:quarkus-arc"
+    implementation "io.quarkus:quarkus-rest"
+    implementation "io.quarkus:quarkus-cache"
+    implementation "io.quarkus:quarkus-hibernate-validator"
+
+    implementation "io.quarkiverse.langchain4j:quarkus-langchain4j-openai:${quarkusOpenAiVersion}"
+
+
+    // Test Dependencies:
+    testImplementation enforcedPlatform("org.junit:junit-bom:${junitVersion}")
+    implementation enforcedPlatform("org.testcontainers:testcontainers-bom:${testContainersVersion}")
+
+    // -- Test - Base
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.mockito:mockito-junit-jupiter:${mockitoJunitVersion}"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+    testImplementation "net.datafaker:datafaker:${datafakerVersion}"
+    testImplementation "org.awaitility:awaitility:${awaitilityVersion}"
+
+    // -- Test - Integration
+    testImplementation "io.rest-assured:rest-assured"
+    testImplementation "org.wiremock:wiremock:${wiremockVersion}"
+    testImplementation "org.testcontainers:testcontainers"
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation "io.quarkus:quarkus-junit5"
+}
+
+group "com.ms.learning"
+version "1.0-SNAPSHOT"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+compileJava {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+
+    dependsOn tasks.openApiGenerate
+}
+
+openApiGenerate {
+    generatorName = "jaxrs-spec"
+    inputSpec = "$rootDir/src/main/resources/openapi/ai-conversation-api.yaml"
+    outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.toString()
+    apiPackage = "com.ms.learning.conversations.api"
+    modelPackage = "com.ms.learning.conversations.dto"
+    invokerPackage = "com.ms.learning.conversations.invoker"
+    configOptions = [
+            "hideGenerationTimestamp": "true",
+            "interfaceOnly" : "true",
+            "useReactive"   : "true",
+            "dateLibrary"   : "java8",
+            "additionalModelTypeAnnotations" : "@lombok.Builder @lombok.Data",
+            "useJakartaEe"  : "true",
+            "useBeanValidation": "true",
+            "useSwaggerAnnotations" : "true"
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir("generated/openapi/src/gen/java").get().asFile
+        }
+    }
+}
+
+compileTestJava {
+    options.encoding = "UTF-8"
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+}
+
+
+quarkus {
+    set("package.jar.type", "${quarkusPackageType}")
+}

@@ -1,0 +1,66 @@
+openapi: 3.1.0
+
+info:
+  title: Conversation API
+  description: This API allows you to facilitate the conversation between an AI-based agent and a user
+  version: 1.0.0
+
+paths:
+  /conversations:
+    post:
+      operationId: postConversationMessages
+      summary: Accepts an ordered list of messages and returns another list of messages
+      description: This endpoint accepts a list of messages in a conversation and returns a processed list of messages.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationRequest'
+      responses:
+        '200':
+          description: A list of processed messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+
+components:
+  schemas:
+    ConversationRequest:
+      type: object
+      properties:
+        conversation:
+          $ref: '#/components/schemas/Conversation'
+      required:
+        - conversation
+
+    ConversationResponse:
+      type: object
+      properties:
+        conversation:
+          $ref: '#/components/schemas/Conversation'
+      required:
+        - conversation
+
+    Conversation:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+      required:
+        - messages
+
+    Message:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        text:
+          type: string
+      required:
+        - timestamp
+        - text
