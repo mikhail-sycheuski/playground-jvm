@@ -30,37 +30,24 @@ components:
     ConversationRequest:
       type: object
       properties:
-        conversation:
-          $ref: '#/components/schemas/Conversation'
-      required:
-        - conversation
+        userMessage:
+          $ref: '#/components/schemas/ConversationMessage'
 
     ConversationResponse:
       type: object
       properties:
-        conversation:
-          $ref: '#/components/schemas/Conversation'
-      required:
-        - conversation
+        responseMessage:
+          $ref: '#/components/schemas/ConversationMessage'
 
-    Conversation:
-      type: object
-      properties:
-        messages:
-          type: array
-          items:
-            $ref: '#/components/schemas/Message'
-      required:
-        - messages
-
-    Message:
+    ConversationMessage:
       type: object
       properties:
         timestamp:
           type: string
           format: date-time
-        text:
+        message:
           type: string
+        context:
+          type: object
       required:
-        - timestamp
-        - text
+        - message

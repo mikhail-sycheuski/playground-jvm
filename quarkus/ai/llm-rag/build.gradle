@@ -81,7 +81,7 @@ openApiGenerate {
             "interfaceOnly" : "true",
             "useReactive"   : "true",
             "dateLibrary"   : "java8",
-            "additionalModelTypeAnnotations" : "@lombok.Builder @lombok.Data",
+            "additionalModelTypeAnnotations" : "@lombok.Builder @lombok.Data @lombok.AllArgsConstructor",
             "useJakartaEe"  : "true",
             "useBeanValidation": "true",
             "useSwaggerAnnotations" : "true"
