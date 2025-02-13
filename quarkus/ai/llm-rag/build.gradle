@@ -52,6 +52,10 @@ dependencies {
     testImplementation "org.testcontainers:testcontainers"
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "io.quarkus:quarkus-junit5"
+
+    // -- Test -- AI
+    testImplementation("io.quarkiverse.langchain4j:quarkus-langchain4j-testing-scorer-junit5:${quarkusOpenAiVersion}")
+    testImplementation("io.quarkiverse.langchain4j:quarkus-langchain4j-testing-scorer-ai-judge:${quarkusOpenAiVersion}")
 }
 
 group "com.ms.learning"
@@ -77,14 +81,14 @@ openApiGenerate {
     modelPackage = "com.ms.learning.conversations.dto"
     invokerPackage = "com.ms.learning.conversations.invoker"
     configOptions = [
-            "hideGenerationTimestamp": "true",
-            "interfaceOnly" : "true",
-            "useReactive"   : "true",
-            "dateLibrary"   : "java8",
-            "additionalModelTypeAnnotations" : "@lombok.Builder @lombok.Data @lombok.AllArgsConstructor",
-            "useJakartaEe"  : "true",
-            "useBeanValidation": "true",
-            "useSwaggerAnnotations" : "true"
+            "hideGenerationTimestamp"       : "true",
+            "interfaceOnly"                 : "true",
+            "useReactive"                   : "true",
+            "dateLibrary"                   : "java8",
+            "additionalModelTypeAnnotations": "@lombok.Builder @lombok.Data @lombok.AllArgsConstructor",
+            "useJakartaEe"                  : "true",
+            "useBeanValidation"             : "true",
+            "useSwaggerAnnotations"         : "true"
     ]
 }
 
