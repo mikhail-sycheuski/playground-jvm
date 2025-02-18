@@ -252,5 +252,8 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+# Quarkus
+.env
+
 
 
