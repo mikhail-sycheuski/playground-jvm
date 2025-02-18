@@ -1,3 +1,5 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
     id "java"
     id "io.quarkus"
@@ -20,16 +22,23 @@ dependencies {
     implementation "org.jboss.slf4j:slf4j-jboss-logmanager"
     implementation "io.swagger:swagger-annotations:${swaggerAnnotationsVersion}"
 
-
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     // Quarkus dependencies
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
-    implementation "io.quarkus:quarkus-smallrye-openapi"
-    implementation "io.quarkus:quarkus-rest-jackson"
     implementation "io.quarkus:quarkus-arc"
+    implementation "io.quarkus:quarkus-smallrye-openapi"
+    implementation "io.quarkus:quarkus-oidc-client"
+    implementation "io.quarkus:quarkus-rest-client-oidc-filter"
+    implementation "io.quarkus:quarkus-smallrye-jwt"
+    implementation "io.quarkus:quarkus-rest-jackson"
+    implementation "io.quarkus:quarkus-rest-client-jackson"
     implementation "io.quarkus:quarkus-rest"
+    implementation "io.quarkus:quarkus-rest-client"
     implementation "io.quarkus:quarkus-cache"
+    // implementation "io.quarkus:quarkus-jdbc-postgresql"
+    // implementation "io.quarkus:quarkus-hibernate-orm"
+    // implementation "io.quarkus:quarkus-hibernate-orm-panache"
     implementation "io.quarkus:quarkus-hibernate-validator"
     implementation "io.quarkus:quarkus-smallrye-fault-tolerance"
 
@@ -67,19 +76,12 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
-compileJava {
-    options.encoding = "UTF-8"
-    options.compilerArgs << "-parameters"
-
-    dependsOn tasks.openApiGenerate
-}
-
-openApiGenerate {
+tasks.register('generateAiAssistantExposedAPI', GenerateTask) {
     generatorName = "jaxrs-spec"
     inputSpec = "$rootDir/src/main/resources/openapi/ai-conversation-api.yaml"
     outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.toString()
-    apiPackage = "com.ms.learning.conversations.api"
-    modelPackage = "com.ms.learning.conversations.dto"
+    apiPackage = "com.ms.learning.conversations.api.producing"
+    modelPackage = "com.ms.learning.conversations.api.producing.dto"
     invokerPackage = "com.ms.learning.conversations.invoker"
     configOptions = [
             "hideGenerationTimestamp"       : "true",
@@ -89,8 +91,38 @@ openApiGenerate {
             "additionalModelTypeAnnotations": "@lombok.Builder @lombok.Data @lombok.AllArgsConstructor",
             "useJakartaEe"                  : "true",
             "useBeanValidation"             : "true",
-            "useSwaggerAnnotations"         : "true"
+            "useSwaggerAnnotations"         : "true",
+            "openApiNullable"               : "false"
     ]
+    ignoreFileOverride = "$rootDir/src/main/resources/openapi/.openapi-generator-ignore"
+}
+
+tasks.register('generateBillingEngineConsumedAPI', GenerateTask) {
+    generatorName = "jaxrs-spec"
+    inputSpec = "$rootDir/src/main/resources/openapi/consuming/billing-engine-api-v2.yaml"
+    outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.toString()
+    apiPackage = "com.ms.learning.conversations.api.consuming"
+    modelPackage = "com.ms.learning.conversations.api.consuming.dto"
+    invokerPackage = "com.ms.learning.conversations.invoker"
+    configOptions = [
+            "hideGenerationTimestamp"       : "true",
+            "interfaceOnly"                 : "true",
+            "useReactive"                   : "true",
+            "dateLibrary"                   : "java8",
+            "additionalModelTypeAnnotations": "@lombok.Builder @lombok.Data @lombok.AllArgsConstructor",
+            "useJakartaEe"                  : "true",
+            "useBeanValidation"             : "true",
+            "useSwaggerAnnotations"         : "true",
+            "openApiNullable"               : "false"
+    ]
+    ignoreFileOverride = "$rootDir/src/main/resources/openapi/.openapi-generator-ignore"
+}
+
+compileJava {
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-parameters"
+
+    dependsOn tasks.named('generateAiAssistantExposedAPI'), tasks.named('generateBillingEngineConsumedAPI')
 }
 
 sourceSets {

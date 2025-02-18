@@ -1,8 +1,9 @@
 package com.ms.learning.conversations.api;
 
-import com.ms.learning.conversations.dto.ConversationMessage;
-import com.ms.learning.conversations.dto.ConversationRequest;
-import com.ms.learning.conversations.dto.ConversationResponse;
+import com.ms.learning.conversations.api.producing.ConversationsApi;
+import com.ms.learning.conversations.api.producing.dto.ConversationMessage;
+import com.ms.learning.conversations.api.producing.dto.ConversationRequest;
+import com.ms.learning.conversations.api.producing.dto.ConversationResponse;
 import com.ms.learning.conversations.service.ModelOperatorService;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;

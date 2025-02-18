@@ -2,7 +2,7 @@ package com.ms.learning.conversations.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ms.learning.conversations.dto.ConversationMessage;
+import com.ms.learning.conversations.api.producing.dto.ConversationMessage;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

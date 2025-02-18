@@ -1,0 +1,2008 @@
+openapi: 3.1.0
+
+info:
+  title: Billing Engine API
+  description: Billing Proposal API is used to fetch billing proposal details in Settlement app.
+  version: 0.2.2
+  contact:
+    name: Team SETT, Delivery and Services
+    email: dl.dsm.eventmanagement.nl@ingka.com
+  license:
+    name: INGKA GROUP INNER SOURCE LICENCE VERSION 1.0
+    url: 'https://github.com/ingka-group-digital/dsm-settlement-billing-proposal/blob/main/licence.md'
+security:
+  - bearerAuth: [ ]
+    backendServiceAuthorization: [ ]
+    gatewayAuth: [ ]
+paths:
+
+  /v2/billable-units/search:
+    post:
+      tags:
+        - Billable Units
+      summary: Search a list of billable units
+      operationId: searchBillableUnits
+      description: Search a list of billable units
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillableUnitSearchDto'
+      responses:
+        '200':
+          description: List of billable units
+          content:
+            application/sett.billable-unit+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBillableUnitGetDto'
+            multipart/form-data;type=text/csv:
+              schema:
+                $ref: '#/components/schemas/PaginatedBillableUnitGetDto'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/billable-units/cost-simulation:
+    post:
+      tags:
+        - Billable Units
+      summary: Trigger new cost simulation for multiple billable units
+      operationId: simulateCostForBillableUnits
+      description: Trigger new cost simulations for billable units based on the provided parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillableUnitCostSimulationRequestDto'
+      responses:
+        '200':
+          description: Billable Units with updated cost calculation results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BillableUnitCostSimulationResultDto'
+            multipart/form-data;type=text/csv:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BillableUnitCostSimulationResultDto'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Billable Unit not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/billable-units/{id}:
+    get:
+      tags:
+        - Billable Units
+      summary: Fetch the active state of a billable unit by the provided id.
+      operationId: getBillableUnitById
+      description: Fetch the active state of a billable unit by the id
+      parameters:
+        - in: path
+          name: id
+          description: id of the billable unit
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Billable unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillableUnitFullGetDto'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Billable Unit not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ------------------------------------------------------------------------------------------------
+  # Deviation rules V2 Endpoints ------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
+
+  /v2/deviation-rules:
+    get:
+      tags:
+        - Deviation Rules V2
+      summary: Fetch a list of deviation rules
+      operationId: getDeviationRules
+      description: Fetch a list of deviation rules
+      parameters:
+        - in: query
+          name: page
+          description: page number
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: size
+          description: page size
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: sort
+          description: >
+              Sort by fields. Expects a comma seperated string of fields prefixed with '-' to denote descending order.
+              Example: supplierId,-referenceKey
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of deviation rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDeviationRuleGetDto'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ------------------------------------------------------------------------------------------------
+  # Billing Proposal V2 Endpoints ------------------------------------------------------------------
+  # ------------------------------------------------------------------------------------------------
+
+  /v2/billing-proposals:
+    get:
+      tags:
+        - Billing Proposals V2
+      summary: Fetch list of billing proposals
+      operationId: getBillingProposalsV2
+      description: Fetch list of billing proposals
+      responses:
+        '200':
+          description: List of billing proposals
+          content:
+            application/json:
+              schema:
+                properties:
+                  billableUnits:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BillingProposalGetDtoV2'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/billing-proposals/{billingProposalId}:
+    get:
+      tags:
+        - Billing Proposals V2
+      summary: Fetch full billing proposals object.
+      operationId: getBillingProposalByIdV2
+      description: Fetch full billing proposal object.
+      parameters:
+        - in: path
+          name: billingProposalId
+          description: ID of the billing proposal
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: before
+          description: Date of status of the billing proposal. The date before is exclusive, meaning 'revision.creationDate < before'.
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Billing proposal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingProposalFullGetDtoV2'
+        '400':
+          description: Bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/billing-proposals/cyclic/{billingProposalId}/lineItemGroups/{billableUnitType}/{costSource}/items:
+    patch:
+      tags:
+        - Billing Proposals V2
+      summary: Add items to the billing proposal line item group
+      operationId: addBillingProposalV2LineItemGroupItems
+      description: |
+        Add items to the billing proposal line item group. 
+        Only if they are not already present in the referenced Billing Proposal. 
+        Items should have the country and supplier matching the referenced Billing Proposal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingProposalV2LineItemGroupUpdateDto'
+      parameters:
+        - in: path
+          name: billingProposalId
+          description: ID of the billing proposal
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: billableUnitType
+          description: The type of the billable unit
+          required: true
+          schema:
+            $ref: '#/components/schemas/IncomingBillableUnitType'
+        - in: path
+          name: costSource
+          description: The cost source of the billable unit
+          required: true
+          schema:
+            $ref: '#/components/schemas/IncomingBillableUnitCostSource'
+      responses:
+        '200':
+          description: updated billing proposal
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/BillingProposalFullGetDtoV2'
+        '400':
+          description: bad input parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: billing proposal not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v2/files/download:
+    get:
+      tags:
+        - File Storage V2
+      summary: Get any file binary based on URI.
+      operationId: getFileByURI
+      description: Get any file binary based on URI. The expected format conforms to https://www.rfc-editor.org/rfc/rfc3986.
+        In general we use mostly the scheme, authority and path to identify the file. Best practice would be to not try to generate these on your own but rather use the ones provided by other end points.
+      parameters:
+        - in: query
+          name: uri
+          description: The URI of the file
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: File not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    RatingRuleDto:
+      type: string
+      enum:
+        - 'PLANNED'
+        - 'ACTUAL'
+        - 'NEGOTIATED'
+    ServiceRatingRuleDto:
+      type: string
+      enum:
+        - 'PLANNED'
+        - 'NEGOTIATED'
+    BillableUnitBase:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/IncomingBillableUnitType'
+        costSource:
+          $ref: '#/components/schemas/IncomingBillableUnitCostSource'
+        country:
+          type: string
+          description: the country code that this billable unit belongs to
+        supplierCarId:
+          type: string
+          description: external car id.
+        referenceKey:
+          type: string
+          description: |
+            reference of that billable unit for the business person to recognize it (example: wo number).
+        status:
+          $ref: '#/components/schemas/BillableUnitStatusDto'
+        errorMessage:
+          type: string
+        cost:
+          type: number
+          description: the cost of this billable unit
+        currency:
+          type: string
+        deviationHandlingStatus:
+          $ref: '#/components/schemas/DeviationHandlingStatusDto'
+
+    DeviationHandlingStatusDto:
+      type: string
+      description: the status of the deviation handling
+      enum:
+        - 'NONE'
+        - 'PENDING'
+        - 'ACCEPTED'
+        - 'REJECTED'
+
+    BillableUnitStatusDto:
+      type: string
+      description: the status of the billable unit
+      enum:
+        - "INVALID"
+        - "NOT_RATEABLE"
+        - "RAW_INGESTED"
+        - "RATED"
+        - "RATING_FAILED"
+        - "WORK_ORDER_ENRICHMENT_FAILED"
+        - "BILLING"
+        - "INVOICED"
+
+    BillableUnitGetDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: the unique id of the billable unit
+            revisionId:
+              type: integer
+              description: billable revision unit id
+            createdBy:
+              type: string
+              description: The user that performed the action on the billable unit
+            changeNote:
+              type: string
+              description: Describes each change on the billable unit
+            comment:
+              type: string
+              description: Comment field used when updating the deviation status
+            additionalInformation:
+              type: string
+              description: Additional information about the update of the deviation status of the billable unit
+            rateParameters:
+              type: object
+              description: The rate parameters used to calculate the cost of this billable unit
+            revisionTimestamp:
+              type: string
+              format: date-time
+              title: revision timestamp. Seconds from Epoch.
+              readOnly: true
+            costDetails:
+              oneOf:
+                - $ref: '#/components/schemas/RouteBillableUnitDetailsDto'
+                - $ref: '#/components/schemas/StorageWorkOrderBillableUnitDetailsDto'
+                - $ref: '#/components/schemas/UsageWorkOrderBillableUnitDetailsDto'
+                - $ref: '#/components/schemas/ServiceBillableUnitDetailsDto'
+            deviationDetectedResult:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DetectedDeviationDto'
+            workOrders:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkOrderDtoV2'
+
+    BillableUnitCreateDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitBase'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: the unique id of the billable unit
+            sourcePayload:
+              type: object
+              description: The payload of the billable unit
+            sourceSystem:
+              type: string
+              description: The external system from where the entity was originated
+            sourceSystemEventId:
+              type: string
+              description: |
+                The primary key on the external system where the entity originates from. 
+                This is used to fetch the "original" data if needed
+
+    PaginationBase:
+      required:
+        - pageNumber
+        - pageTotal
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        pageTotal:
+          type: integer
+        total:
+          type: integer
+        hasPrevious:
+          type: boolean
+        hasNext:
+          type: boolean
+
+    PaginatedBillableUnitGetDto:
+      allOf:
+        - $ref: '#/components/schemas/PaginationBase'
+        - type: object
+          required:
+            - content
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/BillableUnitGetDto'
+
+    BillableUnitFullGetDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitGetDto'
+        - type: object
+          properties:
+            sourcePayload:
+              type: object
+              description: The payload of the billable unit
+            deletedAt:
+              type: string
+              format: date-time
+            history:
+              type: array
+              items:
+                $ref: '#/components/schemas/BillableUnitGetDto'
+              description: |
+                The list of billable units that are related to this billable unit. 
+                For example, a billable unit of type "WO_STORAGE" with Work Order number "123"
+            deviationDetectedResult:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DetectedDeviationDto'
+            workOrders:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkOrderDtoV2'
+              description: |
+                The list of work orders that are related to this billable unit
+
+    BillableUnitRateParametersDto:
+      oneOf:
+        - $ref: '#/components/schemas/RouteRateParametersDto'
+        - $ref: '#/components/schemas/ServiceRateParametersDto'
+
+    RouteRateParametersDto:
+      type: object
+      properties:
+        distanceRatingRule:
+          $ref: '#/components/schemas/RatingRuleDto'
+        durationRatingRule:
+          $ref: '#/components/schemas/RatingRuleDto'
+        startTime:
+          type: string
+          format: date-time
+          description: the start time of the billable unit
+        endTime:
+          type: string
+          format: date-time
+          description: the end time of the billable unit
+        loadingStartTime:
+          type: string
+          format: date-time
+          description: the start time of the billable unit loading
+        loadingEndTime:
+          type: string
+          format: date-time
+          description: the end time of the billable unit loading
+        distance:
+          type: number
+          format: double
+          description: the distance travelled in the billable unit
+
+    ServiceRateParametersDto:
+      type: object
+      properties:
+        serviceRatingRule:
+          deprecated: true
+          description: |
+            This field is deprecated. Please use the following fields instead for each field respectively:
+            - customerZipCodeRatingRule
+            - numberOfTripsRatingRule
+            - capacityRatingRule
+          type: string
+          enum:
+            - 'PLANNED'
+            - 'NEGOTIATED'
+        customerZipCodeRatingRule:
+          $ref: '#/components/schemas/ServiceRatingRuleDto'
+        customerZipCode:
+          type: string
+          description: the zip code of the customer
+        numberOfTripsRatingRule:
+          $ref: '#/components/schemas/ServiceRatingRuleDto'
+        numberOfTrips:
+          type: integer
+          description: the number of trips
+        capacityRatingRule:
+          $ref: '#/components/schemas/ServiceRatingRuleDto'
+        capacity:
+          type: number
+          description: the capacity
+        failureOccurrencesCountRatingRule:
+          $ref: '#/components/schemas/ServiceRatingRuleDto'
+        failureOccurrencesCount:
+          type: integer
+          description: The negotiated failure occurrence count
+
+    ServiceFailureOccurrenceDto:
+      type: object
+      required:
+        - status
+        - updatedAt
+      properties:
+        status:
+          type: string
+          enum:
+            - 'INSUFFICIENT_CAPACITY'
+            - 'CUSTOMER_NOT_HOME'
+            - 'INAPPROPRIATE_SERVICE_CONDITIONS'
+            - 'MISSING_ARTICLES'
+            - 'CUSTOMER_CANCELLATION'
+          description: the status of the failure occurrence
+        reason:
+          type: string
+          description: the reason of the failure occurrence
+        updatedAt:
+          type: string
+          format: date-time
+          description: the date and time when the failure occurrence was updated
+
+    DeviationHandlingStatusChangeDto:
+      type: object
+      properties:
+        comment:
+          type: string
+        additionalInformation:
+          type: string
+        deviationHandlingStatus:
+          $ref: '#/components/schemas/DeviationHandlingStatusDto'
+
+    DetectedDeviationDto:
+      type: object
+      properties:
+        deviationThresholdSurpassed:
+          type: boolean
+          description: the deviation has surpassed the threshold
+        planned:
+          type: number
+          description: the planned amount
+        actual:
+          type: number
+          description: the actual amount
+        calculatedDifference:
+          type: number
+          description: the absolute calculated difference
+        calculatedDifferencePercentual:
+          type: number
+          description: the percentual calculated difference
+        appliedThreshold:
+          type: number
+          description: the applied threshold
+        ruleType:
+          $ref: '#/components/schemas/DeviationRuleTypeDto'
+        message:
+          type: string
+          description: the deviation message
+
+    PaginatedDeviationRuleGetDto:
+      allOf:
+        - $ref: '#/components/schemas/PaginationBase'
+        - type: object
+          required:
+            - content
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeviationRuleGetDto'
+
+    DeviationRuleGetDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: the id of the deviation rule
+        supplierCarId:
+          type: string
+          description: the supplier car id of the deviation rule
+        type:
+          $ref: '#/components/schemas/IncomingBillableUnitType'
+        validFrom:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+        validTo:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+        ruleType:
+          $ref: '#/components/schemas/DeviationRuleTypeDto'
+        source:
+          $ref: '#/components/schemas/DeviationSourceDto'
+        deductBreakTimes:
+          type: boolean
+          description: deduct the break times in the deviation calculation
+        threshold:
+          type: number
+          description: the deviation threshold
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+        createdBy:
+          type: string
+          description: the creator of the deviation rule
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+
+    WorkOrderDtoV2:
+      type: object
+      properties:
+        workOrderRef:
+          type: string
+          description: the work order reference
+        salesOrderNumber:
+          type: string
+          description: the sales order number
+        serviceCode:
+          type: string
+          description: the service code
+        serviceOrderNumber:
+          type: string
+          description: the service order number
+        compartment:
+          type: string
+          description: the compartment
+        sellingBusinessUnit:
+          type: string
+          description: the selling business unit
+
+    DeviationRuleTypeDto:
+      type: string
+      description: the rule type used to determine if the deviation surpassed the threshold
+      enum:
+        - "PERCENTAGE_DIFFERENCE"
+        - "ABS_DIFFERENCE"
+
+    DeviationSourceDto:
+      type: string
+      description: the source measurement that has a deviation
+      enum:
+        - "ROUTE_DURATION"
+        - "ROUTE_DISTANCE"
+
+    DeviationHandlingStatusUpdatedDto:
+      allOf:
+        - $ref: '#/components/schemas/DeviationHandlingStatusChangeDto'
+        - type: object
+          properties:
+            billableUnitId:
+              type: string
+              description: the unique id of the Billable Unit
+            referenceKey:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+              title: date and time when the comment was created. ISO 8601 format.
+            createdBy:
+              type: string
+              description: |
+                The user that created the comment and change the deviation handling status
+
+    BillingProposalBaseV2:
+      type: object
+      properties:
+        country:
+          type: string
+          description: the country code that this billable unit belongs to
+        supplierCarId:
+          type: string
+          description: external car id.
+
+    BillingProposalGetDtoV2:
+      allOf:
+        - $ref: '#/components/schemas/BillingProposalBaseV2'
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: billing p unit id
+            identification:
+              type: string
+              description: identification code
+            supplierCarId:
+              type: string
+              description: external car id
+            currency:
+              type: string
+              description: currency
+            invoiceNumber:
+              type: string
+              description: invoice number
+            status:
+              type: string
+              description: the status of the billing proposal
+            revisionTimestamp:
+              type: string
+              format: date-time
+              title: last time the Billing Proposal was updated. ISO 8601 format.
+              readOnly: true
+            clientId:
+              type: integer
+              description: client identifier
+            createdAt:
+              type: string
+              format: date-time
+              title: date and time when the Billing Proposal was created. ISO 8601 format.
+            cycleStartDate:
+              type: string
+              format: date
+              description: the start date of the billing proposal cycle
+            cycleEndDate:
+              type: string
+              format: date
+              description: the end date of the billing proposal cycle
+            cycleCloseDate:
+              type: string
+              format: date-time
+              description: the close date of the billing proposal cycle
+            deletedAt:
+              type: string
+              format: date-time
+            totalCost:
+              type: number
+              description: total cost of the billing proposal
+            manuallyCreated:
+              type: boolean
+              description: billing proposal has been manually created
+            costReportFileWithAccounting:
+              type: string
+              description: Excel file with the cost report WITH the cost split summary tab
+      example: |
+        {
+          "type": "WO_STORAGE",
+          "country": "US",
+          "supplierCarId": "50921",
+          "id": 123,
+          "identification": "BP-DK-2023-0000",
+          "currency": "USD",
+          "invoiceNumber": "12345",
+          "status": "pending",
+          "revisionTimestamp": "2022-01-01T00:00:00Z",
+          "clientId": 456,
+          "createdAt": "2022-01-01T00:00:00Z",
+          "cycleStartDate": "2022-01-01",
+          "cycleEndDate": "2022-01-31",
+          "cycleCloseDate": "2022-02-07",
+          "createdBy": "John Doe",
+          "deletedAt": "2022-01-02T00:00:00Z",
+          "totalCost": 100.0
+        }
+
+    BillingProposalCreateDtoV2:
+      allOf:
+        - $ref: '#/components/schemas/BillingProposalBaseV2'
+
+    CyclicBillingProposalCreateDtoV2:
+      allOf:
+        - $ref: '#/components/schemas/BillingProposalBaseV2'
+        - type: object
+          properties:
+            cycleStartDate:
+              type: string
+              format: date
+            cycleEndDate:
+              type: string
+              format: date
+            cycleCloseDate:
+              type: string
+              format: date
+
+    CyclicBillingProposalInvoiceDtoV2:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+          description: invoice number to register to the Billing Proposal Cyclic
+
+    BillingProposalFullGetDtoV2:
+      allOf:
+        - $ref: '#/components/schemas/BillingProposalGetDtoV2'
+        - type: object
+          properties:
+            revisions:
+              type: array
+              items:
+                $ref: '#/components/schemas/BillingProposalRevisionReferenceDtoV2'
+            lineItemGroups:
+              type: array
+              items:
+                $ref: '#/components/schemas/BillingProposalLineItemGroup'
+              description: |
+                The list of line items of this BP separated in groups. 
+                Each group contains a list of billable units of the same type and the total cost of that group
+            costReportFileWithAccounting:
+              type: string
+              description: Excel file with the cost report WITH the cost split summary tab
+      example: |
+        {
+          "type": "WO_STORAGE",
+          "country": "US",
+          "supplierCarId": "50921",
+          "id": 123,
+          "identification": "BP-DK-2023-0000",
+          "currency": "USD",
+          "invoiceNumber": "12345",
+          "status": "pending",
+          "revisionTimestamp": "2022-01-01T00:00:00Z",
+          "clientId": 456,
+          "createdAt": "2022-01-01T00:00:00Z",
+          "cycleStartDate": "2022-01-01",
+          "cycleEndDate": "2022-01-31",
+          "cycleCloseDate": "2022-02-07",
+          "createdBy": "John Doe",
+          "deletedAt": "2022-01-02T00:00:00Z",
+          "totalCost": 100.0,
+          "revisions": [{
+              "revisionTimestamp": "2022-01-01T00:00:00Z",
+              "infoMessage": "BP created",
+              "status": "pending",
+              "createdBy": "user@ingka.ikea.com", 
+              "totalCost": 100.0,
+            },
+            {
+              "revisionTimestamp": "2022-03-01T00:00:00Z",
+              "infoMessage": "BP invoiced",
+              "createdBy": "System",
+              "status": "pending",
+              "totalCost": 100.0,
+          }],
+          "lineItemGroups":[{
+            "itemsType": "WO_STORAGE",
+            "totalCost": 100.0,
+            "items": [{
+              "id": 123,
+              "type": "WO_STORAGE",
+              "costSource": "STORAGE",
+              "country": "US",
+              "supplierCarId": "50921",
+              "revisionTimestamp": "2022-01-01T00:00:00Z",
+              "deletedAt": "2022-01-02T00:00:00Z",
+              "totalCost": 100.0,
+              "createdAt": "2022-01-01T00:00:00Z",
+              "createdBy": "John Doe",
+              "costDetails": {
+                "senderBuType": "STO",
+                "senderBuCode": 379,
+                "cost": 100.0
+              }
+            }]
+          }]
+        }
+
+    BillingProposalLineItemGroup:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/IncomingBillableUnitType'
+        costSource:
+          $ref: '#/components/schemas/IncomingBillableUnitCostSource'
+        totalCost:
+          type: number
+          description: total cost of the billable units on this group
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingProposalLineItem'
+
+    BillingProposalLineItem:
+      properties:
+        id:
+          type: integer
+          description: line item id. You can use this to get the full details of the Billable Unit represented in this Line Item
+        billableUnitId:
+          type: string
+          description: the id of the billable unit represented in this Line Item
+        createdAt:
+          type: string
+          format: date-time
+          description: |
+            The date and time when the Billable Unit represented in this Line Item was created. 
+            ISO 8601 format.
+        createdBy:
+          type: string
+          description: |
+            The user that created the Billable Unit represented in this Line Item
+        sourceSystem:
+          type: string
+          description: |
+            The external system from where the Billable Unit represented in this Line Item was originated
+        sourceSystemEntityPkey:
+          type: string
+          description: |
+            The primary key on the external system where the Billable Unit represented in this Line Item was originated 
+            This is used to be able to fetch the "original" data if needed
+        costDetails:
+          $ref: '#/components/schemas/CostDetailsDto'
+
+    RouteBillableUnitDetailsDto:
+      type: object
+      properties:
+        actualBreakTimes:
+          type: string
+          example: "PT1H3M39S"
+          description: ISO 8601 duration for actual break time
+        actualDistance:
+          type: string
+          description: The actual distance traveled on the route
+        actualDuration:
+          type: string
+          example: "PT7H7M44S"
+          description: ISO 8601 duration for actual time to execute the route
+        actualEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: ISO 8601 datetime of the actual end time of route execution
+        actualLoadingDuration:
+          type: string
+          example: "PT1H3M39S"
+          nullable: true
+          description: ISO 8601 duration for actual loading time
+        actualLoadingEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the actual loading end time
+        actualLoadingStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the actual loading start time
+        actualStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: ISO 8601 datetime of the actual start time of route execution
+        costForDaytime:
+          type: string
+          example: "400.00000"
+          description: The rating cost for daytime delivery
+        costForDistance:
+          type: string
+          example: "106.40000"
+          description: The rating cost for distance
+        costForEvening:
+          type: string
+          example: "450.00000"
+          description: The rating cost for evening delivery
+        costForNight:
+          type: string
+          example: "500.00000"
+          description: The rating cost for night delivery
+        costSource:
+          type: string
+          example: "EFFORT_BASED_DELIVERY"
+          description: The cost source - determines how billable unit is rated
+        country:
+          type: string
+          example: "CH"
+          description: The country code
+        currency:
+          type: string
+          example: "CHF"
+          description: The currency of the calculated costs
+        deviationStatus:
+          type: string
+          example: "PENDING"
+          description: The deviation status
+        errorMessage:
+          type: string
+          example: "'BoxVan_3_9t' vehicle type is not supported"
+          nullable: true
+          description: The error message set when the billable unit couldn't be processed fully
+        handling:
+          type: string
+          example: "TWO_PERSON"
+          description: The handling type
+        holidaySurcharge:
+          type: string
+          example: "50.00000"
+          nullable: true
+          description: The holiday surcharge
+        negotiatedDistance:
+          type: string
+          example: "100.00000"
+          nullable: true
+          description: The negotiated distance
+        negotiatedDuration:
+          type: string
+          example: "PT7H7M44S"
+          nullable: true
+          description: ISO 8601 duration for negotiated time to execute the route
+        negotiatedEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime of the negotiated end time of route execution
+        negotiatedLoadingDuration:
+          type: string
+          example: "PT1H3M39S"
+          nullable: true
+          description: ISO 8601 duration for negotiated loading time
+        negotiatedLoadingEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the negotiated loading end time
+        negotiatedLoadingStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the negotiated loading start time
+        negotiatedStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime of the negotiated start time of route execution
+        plannedBreakTimes:
+          type: string
+          example: "PT1H3M39S"
+          description: ISO 8601 duration for planned break time
+        plannedDistance:
+          type: string
+          example: "100.00000"
+          description: The planned distance
+        plannedDuration:
+          type: string
+          example: "PT7H7M44S"
+          description: ISO 8601 duration for planned time to execute the route
+        plannedEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: ISO 8601 datetime of the planned end time of route execution
+        plannedLoadingDuration:
+          type: string
+          example: "PT1H3M39S"
+          nullable: true
+          description: ISO 8601 duration for planned loading time
+        plannedLoadingEndTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the planned loading end time
+        plannedLoadingStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          nullable: true
+          description: ISO 8601 datetime for the planned loading start time
+        plannedStartTime:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: ISO 8601 datetime of the planned start time of route execution
+        pricePercentageDecimal:
+          type: string
+          example: "0.5"
+          nullable: true
+          description: The price percentage decimal
+        pricePercentageDecimalHolidaySurcharge:
+          type: string
+          example: "0.5"
+          nullable: true
+          description: The price percentage decimal holiday surcharge
+        pricePercentageDecimalSaturdaySurcharge:
+          type: string
+          example: "0.5"
+          nullable: true
+          description: The price percentage decimal saturday surcharge
+        pricePercentageDecimalSundaySurcharge:
+          type: string
+          example: "0.5"
+          nullable: true
+          description: The price percentage decimal sunday surcharge
+        pricePerHour:
+          type: string
+          example: "100.00000"
+          nullable: true
+          description: The price per hour
+        pricePerHourCostForDaytime:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour cost for daytime
+        pricePerHourCostForEvening:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour cost for evening
+        pricePerHourCostForNight:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour cost for night
+        pricePerHourSaturdaySurcharge:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour Saturday surcharge
+        pricePerHourSundaySurcharge:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour Sunday surcharge
+        pricePerKmCostForDistance:
+          type: string
+          example: "2.8"
+          description: The price per km cost for distance
+        pricePriceperhour:
+          type: string
+          example: "591"
+          nullable: true
+          description: The price per hour - legacy field
+        pricePriceperkm:
+          type: string
+          example: "2.8"
+          nullable: true
+          description: The price per km - legacy field
+        referenceKey:
+          type: string
+          example: "1574989"
+          description: The reference key of the Billable Unit
+        saturdaySurcharge:
+          type: string
+          example: "50.00000"
+          nullable: true
+          description: The saturday surcharge
+        senderBusinessUnit:
+          type: string
+          example: "STO.101"
+          description: The IKEA-wide identifier of the sender business unit
+        serviceType:
+          type: string
+          example: "Effort Based with Delivery only"
+          description: The type of service
+        sourceSystem:
+          type: string
+          example: "SBSMANAGER"
+          description: Identifier of the application
+        sundaySurcharge:
+          type: string
+          example: "50.00000"
+          nullable: true
+          description: The sunday surcharge
+        supplierCarId:
+          type: string
+          example: "30724"
+          description: The supplier carrier ID - the company that provides the transportation
+        totalCost:
+          type: string
+          example: "622.40000"
+          description: The total cost for which this billable unit should be billed
+        vehicleType:
+          type: string
+          example: "ElectricBoxVan_3_9t"
+          description: The vehicle type that was used for delivery
+        numberOfWorkOrders:
+          type: number
+          example: 1
+          description: The number of work orders that are related to this route
+
+    StorageWorkOrderBillableUnitDetailsDto:
+      type: object
+      properties:
+        costSource:
+          type: string
+          example: "STORAGE"
+          description: The cost source
+        country:
+          type: string
+          example: "CH"
+          description: The country code
+        currency:
+          type: string
+          example: "CHF"
+          description: The currency
+        deviationStatus:
+          type: string
+          example: "PENDING"
+          description: The deviation status
+        errorMessage:
+          type: string
+          nullable: true
+          example: "Validation failed: [property: cdus, message: The Work Order Storage transaction doesn't have any CDU]"
+          description: The error message
+        extraStorageDays:
+          type: string
+          example: "5"
+          description: The number of extra storage days
+        freeDays:
+          type: string
+          example: "2"
+          description: The number of free days
+        handlingFee:
+          type: string
+          example: "50.00"
+          description: The handling fee
+        hubBusinessUnit:
+          type: string
+          example: "LSC.3130"
+          description: The hub business unit
+        hubName:
+          type: string
+          example: "DMP Ballens"
+          description: The hub name
+        loadedOnTruckDate:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: The date when the goods were loaded on the truck (ISO 8601 format)
+        priceHandlingFeePerDrop:
+          type: string
+          nullable: true
+          example: "10.00"
+          description: The price handling fee per drop - legacy field
+        pricePerDay:
+          type: string
+          example: "20.00"
+          description: The price per day
+        pricePerDayStorageCost:
+          type: string
+          example: "15.00"
+          description: The price per day storage cost
+        pricePerDrop:
+          type: string
+          example: "5.00"
+          description: The price per drop
+        pricePerDropHandlingFee:
+          type: string
+          example: "7.00"
+          description: The price per drop handling fee
+        priceStorageCostPerDay:
+          type: string
+          example: "12.00"
+          nullable: true
+          description: The price storage cost per day - legacy field
+        receivedAtHubDate:
+          type: string
+          example: "2024-02-25T10:30:00Z"
+          description: The date when the goods were received at the hub (ISO 8601 format)
+        referenceKey:
+          type: string
+          example: "1574989"
+          description: The reference key
+        salesOrderNumber:
+          type: string
+          example: "1445602716"
+          description: The sales order number
+        senderBUCity:
+          type: string
+          example: "Itingen"
+          description: The sender business unit city
+        senderBuName:
+          type: string
+          example: "CDC Itingen"
+          description: The sender business unit name
+        senderBusinessUnit:
+          type: string
+          example: "STO.102"
+          description: The sender business unit
+        serviceCode:
+          type: string
+          example: "CDC.020"
+          description: The service code
+        serviceOrderNumber:
+          type: string
+          example: "347952214"
+          description: The service order number
+        sourceSystem:
+          type: string
+          example: "WOMGR"
+          description: The source system
+        startBuName:
+          type: string
+          example: "CDC Itingen"
+          description: The start business unit name
+        storageCost:
+          type: string
+          example: "100.00"
+          description: The storage cost
+        supplierCarId:
+          type: string
+          example: "30724"
+          description: The supplier carrier ID
+        totalDays:
+          type: string
+          example: "7"
+          description: The total number of days
+        terminatedAt:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: The date when the work order was terminated (ISO 8601 format)
+        terminalStatus:
+          type: string
+          example: "COMPLETED"
+          description: The terminal status of the work order, i.e completed or cancelled
+
+    UsageWorkOrderBillableUnitDetailsDto:
+      type: object
+      properties:
+        basePrice:
+          type: string
+          example: "100.00"
+          description: The base price
+        compartment:
+          type: string
+          example: "334992820"
+          description: The compartment
+        creationDate:
+          type: string
+          example: "2024-02-27T14:56:10Z"
+          description: The creation date (ISO 8601 format)
+        currency:
+          type: string
+          example: "EUR"
+          description: The currency
+        deliveryMethod:
+          type: string
+          example: "TRUCK_ORDER"
+          description: The delivery method
+        numberOfOrdersSameDay:
+          type: string
+          example: "3"
+          description: The number of orders processed on the same day
+        salesOrderNumber:
+          type: string
+          example: "salesOrderNumber"
+          description: The sales order number
+        sellingBusinessUnit:
+          type: string
+          example: "STO.151"
+          description: The selling business unit
+        shippingBusinessUnit:
+          type: string
+          example: "STO.151"
+          description: The shipping business unit
+        supplierCarId:
+          type: string
+          example: "30724"
+          description: The supplier carrier ID
+        tieredPrice:
+          type: string
+          example: "150.00"
+          description: The tiered price
+        totalCost:
+          type: string
+          example: "250.00"
+          description: The total cost
+        workOrderNumber:
+          type: string
+          example: "334992820"
+          description: The work order number
+        workOrderProcessCost:
+          type: string
+          example: "50.00"
+          description: The work order process cost
+
+    CostDetailsDto:
+      type: object
+      additionalProperties:
+        type: object
+      example:
+        senderBuType: STO
+        senderBuCode: 379
+        cost: 412.34
+      description: |
+        The cost details of the billable unit represented in this Line Item. 
+        It is a key-value pair with all the relevant attributes to understand the total cost of this item
+    ServiceBillableUnitDetailsDto:
+      type: object
+      properties:
+        plannedStartTime:
+          type: string
+          description: The scheduled start of the service.
+        serviceStatus:
+          type: string
+          enum:
+            - 'COMPLETED'
+            - 'CANCELLED'
+          description: How was the service order concluded.
+        executionDate:
+          type: string
+          description: The date when the service entered a terminal status.
+        numberOfTrips:
+          type: number
+          description: The number of times the trip to customer was made.
+        customerZone:
+          type: string
+          description: The zone identifier of the place where the service is to take place.
+        customerZipCode:
+          type: string
+          description: The zip code of the place where the service is to take place.
+        capacity:
+          type: number
+          format: decimal
+          description: The amount of committed work. See capacityUOM for significance of the value.
+        capacityUOM:
+          type: string
+          description: The unit of measure for the capacity. Could be temporal(minute,hour), unit based or other.
+        numberOfFailedOccurrences:
+          type: number
+          description: The number of times the service failed to be executed.
+        salesOrderNumber:
+          type: string
+          description: The sales order identifier. Retrieved based on attached WO.
+        serviceOrderNumber:
+          type: string
+          description: The service order identifier. Retrieved based on attached WO.
+        sellingBusinessUnit:
+          type: string
+          description: the selling business unit
+        serviceCode:
+          type: string
+          description: The SGR code used to determine type of service.
+        serviceName:
+          type: string
+          description: Based on the serviceCode (SGR code) and the country.
+        costForService:
+          type: number
+          format: decimal
+          description: The cost of the service.
+        costForCancellation:
+          type: number
+          format: decimal
+          description: The cost of the cancellation of the service provided.
+        costForFailure:
+          type: number
+          format: decimal
+          description: The cost of the failure of the service provided.
+        costForSetup:
+          type: number
+          format: decimal
+          description: The cost of setting up the service.
+        costForTravel:
+          type: number
+          format: decimal
+          description: The cost of the travel to the customer house to provide the service.
+        priceFixedPriceCancellationCost:
+          type: number
+          format: decimal
+          description: The fixed price for the cancellation.
+        priceFixedPriceFailureCost:
+          type: number
+          format: decimal
+          description: The fixed price for the failure.
+        priceFixedPriceSetupCost:
+          type: number
+          format: decimal
+          description: The fixed price for the setup.
+        priceFixedPriceMinimumPayment:
+          type: number
+          format: decimal
+          description: The fixed price for the minimum payment.
+        priceFixedPriceCostForTravel:
+          type: number
+          format: decimal
+          description: The fixed price for the travel.
+        pricePerMinuteCostForService:
+          type: number
+          format: decimal
+          description: The price per minute for the service provided.
+        minimumPayment:
+          type: number
+          format: decimal
+          description: The minimum payment for the service.
+        negotiatedCustomerZipCode:
+          type: string
+          description: the zip code of the customer
+        negotiatedNumberOfTrips:
+          type: integer
+          description: the number of trips
+        negotiatedCapacity:
+          type: number
+          description: the capacity
+        negotiatedNumberOfFailedOccurrences:
+          type: integer
+          description: The negotiated failure occurrence count.
+        priceFlatFeePriceCancellationCost:
+          type: number
+          format: decimal
+          description: The flat fee price for the cancellation.
+        cancellationReason:
+          type: string
+          description: the reason for the cancellation
+        rateCardId:
+          type: integer
+          description: the id of the rate card used to calculate the cost
+        plannedCustomerZipCode:
+          type: string
+          description: the zip code of the customer
+        plannedNumberOfTrips:
+          type: integer
+          description: the number of trips
+        plannedCapacity:
+          type: number
+          description: the capacity
+        senderBusinessUnits:
+          type: array
+          description: the sender business unit ids
+          items:
+            type: string
+
+    BillingProposalRevisionReferenceDtoV2:
+      type: object
+      properties:
+        revisionTimestamp:
+          type: string
+          format: date-time
+          title: last time the Billing Proposal was updated. ISO 8601 format.
+          readOnly: true
+        infoMessage:
+          type: string
+          description: the message of the revision
+        createdBy:
+          type: string
+          description: the user that performed the action that led to revision creation
+        status:
+          type: string
+          description: the status of the billing proposal on that revision
+        totalCost:
+          type: number
+          description: total cost of the billing proposal on that revision
+        costReportFileWithAccounting:
+          type: string
+          description: Excel file with the cost report WITH the cost split summary tab
+
+    BillingProposalV2StatusChangeDto:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/BillingProposalV2StatusDto'
+
+    BillingProposalV2LineItemGroupUpdateDto:
+      type: object
+      properties:
+        items:
+          type: array
+          description: |
+            The list of billable unit reference keys that need to be added to the billing proposal.
+            The billable units mentioned in the list should have the same supplier and country as set in the Billing proposal
+          items:
+            type: string
+
+    IncomingBillableUnitType:
+      type: string
+      description: the type of the billable unit
+      enum:
+        - 'ROUTE'
+        - 'WORK_ORDER'
+        - 'SERVICE'
+
+    IncomingBillableUnitCostSource:
+      type: string
+      description: the source of the cost for the billable unit
+      enum:
+        - 'EFFORT_BASED_DELIVERY'
+        - 'STORAGE'
+        - 'IRP_APPS_PROCESSING'
+        - 'SERVICE'
+
+    BillingProposalV2StatusDto:
+      type: string
+      description: the status of the billing proposal
+      enum:
+        - 'DRAFT'
+        - 'SENT'
+        - 'INVOICED'
+        - 'DELETED'
+        - 'ACCEPTED'
+
+    ErrorResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type.
+          default: 'about:blank'
+          example: 'https://api.ingka.ikea.com/problem/constraint-violation'
+        title:
+          type: string
+          description: |
+            A short, summary of the problem type. Written in english and readable
+            for engineers (usually not suited for non technical stakeholders and
+            not localized); example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence
+            of the problem.
+          minimum: 100
+          maximum: 600
+          exclusiveMaximum: true
+          example: 503
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the
+            problem.
+          example: Connection to database timed out
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereference.
+          example: /account/12345/msgs/abc
+
+    BillableUnitBaseSearchDto:
+      type: object
+      properties:
+        referenceKey:
+          type: string
+          description: reference key of the billable unit
+        referenceKeys:
+          type: array
+          description: reference keys of the billable units
+          items:
+            type: string
+        referenceDateTimeRangeStart:
+          type: string
+          format: date-time
+          description: the datetime which filters billable units so that referenceDateTime is after or equal to it
+        referenceDateTimeRangeEnd:
+          type: string
+          format: date-time
+          description: the datetime which filters billable units so that referenceDateTime is before or equal to it
+        assignedToBillingProposal:
+          type: boolean
+          description: filters billable units which are either assigned to billing proposal or not
+        country:
+          type: string
+          description: country code of the billable unit
+        supplierCarId:
+          type: string
+          description: supplier car id of the billable unit
+        status:
+          type: string
+          description: statuses of the billable unit represented as a comma separated list
+        deviationHandlingStatus:
+          type: string
+          description: deviation statuses of the billable unit represented as a comma separated list
+        type:
+          $ref: '#/components/schemas/IncomingBillableUnitType'
+        costSource:
+          $ref: '#/components/schemas/IncomingBillableUnitCostSource'
+        currency:
+          type: string
+          description: The currency of the billable unit
+        costFrom:
+          type: number
+          description: The cost of the billable unit lower bound (inclusive)
+        costTo:
+          type: number
+          description: The cost of the billable unit upper bound (inclusive)
+        page:
+          type: integer
+          description: page number
+        size:
+          type: integer
+          description: page size
+        sort:
+          type: string
+          description: >
+            Sort by fields. Expects a comma seperated string of fields prefixed with '-' to denote descending order.
+            Example: supplierId,-referenceKey
+        csvExportFields:
+          type: array
+          description: >
+            Comma separated list of fields to be exported in the CSV file. 
+            If not provided, all fields will be exported. The id will always be exported.
+          items:
+            type: string
+        csvExportType:
+          $ref: '#/components/schemas/CsvExportTypeDto'
+
+    WorkOrderBillableUnitSearchDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitBaseSearchDto'
+
+    RouteDeliveryEffortBasedBillableUnitSearchDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitBaseSearchDto'
+        - type: object
+          properties:
+            senderBusinessUnit:
+              type: string
+              description: The sender business unit of the billable unit
+            serviceType:
+              type: string
+              description: The service type of the billable unit
+            handling:
+              type: string
+              description: The handling of the billable unit
+            vehicleType:
+              type: string
+              description: The vehicle type of the billable unit
+            plannedStartTimeFrom:
+              type: string
+              format: date-time
+              description: The planned start time of the billable unit lower bound (inclusive)
+            plannedStartTimeTo:
+              type: string
+              format: date-time
+              description: The planned start time of the billable unit upper bound (inclusive)
+            plannedEndTimeFrom:
+              type: string
+              format: date-time
+              description: The planned end time of the billable unit lower bound (inclusive)
+            plannedEndTimeTo:
+              type: string
+              format: date-time
+              description: The planned end time of the billable unit upper bound (inclusive)
+            actualStartTimeFrom:
+              type: string
+              format: date-time
+              description: The actual start time of the billable unit lower bound (inclusive)
+            actualStartTimeTo:
+              type: string
+              format: date-time
+              description: The actual start time of the billable unit upper bound (inclusive)
+            actualEndTimeFrom:
+              type: string
+              format: date-time
+              description: The actual end time of the billable unit lower bound (inclusive)
+            actualEndTimeTo:
+              type: string
+              format: date-time
+              description: The actual end time of the billable unit upper bound (inclusive)
+            plannedDistanceFrom:
+              type: number
+              description: The planned distance of the billable unit lower bound (inclusive)
+            plannedDistanceTo:
+              type: number
+              description: The planned distance of the billable unit upper bound (inclusive)
+            actualDistanceFrom:
+              type: number
+              description: The actual distance of the billable unit lower bound (inclusive)
+            actualDistanceTo:
+              type: number
+              description: The actual distance of the billable unit upper bound (inclusive)
+
+    ServiceBillableUnitSearchDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitBaseSearchDto'
+        - type: object
+          properties:
+            plannedStartTimeFrom:
+              type: string
+              format: date-time
+              description: The planned start time of the service provided lower bound (inclusive)
+            plannedStartTimeTo:
+              type: string
+              format: date-time
+              description: The planned start time of the service provided upper bound (inclusive)
+            executionDateFrom:
+              type: string
+              format: date-time
+              description: The date when the billable unit entered a terminal status lower bound (inclusive)
+            executionDateTo:
+              type: string
+              format: date-time
+              description: The date when the billable unit entered a terminal status upper bound (inclusive)
+            numberOfTripsFrom:
+              type: number
+              description: The number of times the trip to customer was made lower bound (inclusive)
+            numberOfTripsTo:
+              type: number
+              description: The number of times the trip to customer was made upper bound (inclusive)
+            customerZone:
+              type: string
+              description: The zone identifier of the place where the service is to take place
+            customerZipCode:
+              type: string
+              description: The zip code of the place where the service is to take place
+            capacityFrom:
+              type: number
+              description: The amount of committed work lower bound (inclusive)
+            capacityTo:
+              type: number
+              description: The amount of committed work upper bound (inclusive)
+            capacityUOM:
+              type: string
+              description: The unit of measure for the capacity
+            numberOfFailedOccurrencesFrom:
+              type: number
+              description: The number of failed occurrences for the service lower bound (inclusive)
+            numberOfFailedOccurrencesTo:
+              type: number
+              description: The number of failed occurrences for the service upper bound (inclusive)
+            costForServiceFrom:
+              type: number
+              description: The cost of the service lower bound (inclusive)
+            costForServiceTo:
+              type: number
+              description: The cost of the service upper bound (inclusive)
+            costForCancellationFrom:
+              type: number
+              description: The cost of the cancellation of the service provided lower bound (inclusive)
+            costForCancellationTo:
+              type: number
+              description: The cost of the cancellation of the service provided upper bound (inclusive)
+            costForFailureFrom:
+              type: number
+              description: The cost of the failure of the service provided lower bound (inclusive)
+            costForFailureTo:
+              type: number
+              description: The cost of the failure of the service provided upper bound (inclusive)
+            costForSetupFrom:
+              type: number
+              description: The cost of setting up the installation lower bound (inclusive)
+            costForSetupTo:
+              type: number
+              description: The cost of setting up the installation upper bound (inclusive)
+            costForTravelFrom:
+              type: number
+              description: The travel cost related to the service provided lower bound (inclusive)
+            costForTravelTo:
+              type: number
+              description: The travel cost related to the service provided upper bound (inclusive)
+            sellingBusinessUnit:
+              type: string
+              description: The selling business unit
+            salesOrderNumber:
+              type: string
+              description: The sales order identifier
+            serviceOrderNumber:
+              type: string
+              description: The service order identifier
+            serviceCode:
+              type: string
+              description: The SGR code used to determine type of service
+            serviceStatus:
+              type: string
+              description: Commas separated list of statuses of the service
+
+    BillableUnitSearchDto:
+      oneOf:
+        - $ref: '#/components/schemas/WorkOrderBillableUnitSearchDto'
+        - $ref: '#/components/schemas/RouteDeliveryEffortBasedBillableUnitSearchDto'
+        - $ref: '#/components/schemas/ServiceBillableUnitSearchDto'
+
+    BillableUnitCostCalculationRequestDto:
+      type: object
+      description: >
+        The request object for calculating the cost of a billable unit
+      properties:
+        billableUnitId:
+          type: string
+          description: the id of the billable unit
+        rateParameters:
+          $ref: '#/components/schemas/BillableUnitRateParametersDto'
+
+    BillableUnitCostSimulationRequestDto:
+      type: object
+      properties:
+        billableUnitIds:
+          type: array
+          items:
+            type: string
+        csvExportFields:
+          type: array
+          description: >
+            Comma separated list of fields to be exported in the CSV file. 
+            If not provided, all fields will be exported. The id will always be exported.
+          items:
+            type: string
+
+    BillableUnitCalculatedCostDto:
+      type: object
+      properties:
+        rateCardId:
+          type: integer
+          description: the rate card id
+        serviceCode:
+          type: string
+          description: the service code
+        totalCost:
+          type: number
+          description: the total cost of the billable unit
+        currency:
+          type: string
+          description: the currency of the billable unit
+
+    BillableUnitCostSimulationResultDto:
+      allOf:
+        - $ref: '#/components/schemas/BillableUnitGetDto'
+      properties:
+        plannedCost:
+          $ref: '#/components/schemas/BillableUnitCalculatedCostDto'
+        actualCost:
+          $ref: '#/components/schemas/BillableUnitCalculatedCostDto'
+        effectiveCost:
+          $ref: '#/components/schemas/BillableUnitCalculatedCostDto'
+        errorMessage:
+          type: string
+          description: the error message if the cost simulation failed
+
+    CsvExportTypeDto:
+      type: string
+      enum:
+        - 'STANDARD'
+        - 'BULK_ACTION'
+      default:
+        'STANDARD'
+      description:
+        The type of the CSV export. If not provided, 'STANDARD' will be used.
+
+  securitySchemes:
+    gatewayAuth:
+      type: apiKey
+      name: X-Client-ID
+      description: Key to authenticate in API gateway
+      in: header
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    backendServiceAuthorization:
+      type: apiKey
+      name: X-Backend-Service-Authorization
+      description: Internal JWT provided by Auth service
+      in: header
