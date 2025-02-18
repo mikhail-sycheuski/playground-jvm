@@ -43,7 +43,7 @@ dependencies {
     implementation "io.quarkus:quarkus-smallrye-fault-tolerance"
 
     implementation "io.quarkiverse.langchain4j:quarkus-langchain4j-openai:${quarkusOpenAiVersion}"
-
+    implementation "io.quarkiverse.langchain4j:quarkus-langchain4j-vertex-ai-gemini:${quarkusVertexAiVersion}"
 
     // Test Dependencies:
     testImplementation enforcedPlatform("org.junit:junit-bom:${junitVersion}")
