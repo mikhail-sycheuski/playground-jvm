@@ -2,12 +2,17 @@ package com.ms.learning.conversations.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ms.learning.conversations.api.consuming.dto.BillableUnitFullGetDto;
 import com.ms.learning.conversations.api.producing.dto.ConversationMessage;
+import com.ms.learning.conversations.data.billingengine.client.BillableUnitRepository;
+import com.ms.learning.conversations.data.billingengine.client.BillingEngineClient;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ModelOperatorService {

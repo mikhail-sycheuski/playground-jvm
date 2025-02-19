@@ -36,9 +36,6 @@ paths:
             application/sett.billable-unit+json:
               schema:
                 $ref: '#/components/schemas/PaginatedBillableUnitGetDto'
-            multipart/form-data;type=text/csv:
-              schema:
-                $ref: '#/components/schemas/PaginatedBillableUnitGetDto'
         '400':
           description: Bad input parameter
           content:
@@ -64,11 +61,6 @@ paths:
           description: Billable Units with updated cost calculation results
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BillableUnitCostSimulationResultDto'
-            multipart/form-data;type=text/csv:
               schema:
                 type: array
                 items:
@@ -225,63 +217,6 @@ paths:
                 $ref: '#/components/schemas/BillingProposalFullGetDtoV2'
         '400':
           description: Bad input parameter
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /v2/billing-proposals/cyclic/{billingProposalId}/lineItemGroups/{billableUnitType}/{costSource}/items:
-    patch:
-      tags:
-        - Billing Proposals V2
-      summary: Add items to the billing proposal line item group
-      operationId: addBillingProposalV2LineItemGroupItems
-      description: |
-        Add items to the billing proposal line item group. 
-        Only if they are not already present in the referenced Billing Proposal. 
-        Items should have the country and supplier matching the referenced Billing Proposal.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BillingProposalV2LineItemGroupUpdateDto'
-      parameters:
-        - in: path
-          name: billingProposalId
-          description: ID of the billing proposal
-          required: true
-          schema:
-            type: integer
-        - in: path
-          name: billableUnitType
-          description: The type of the billable unit
-          required: true
-          schema:
-            $ref: '#/components/schemas/IncomingBillableUnitType'
-        - in: path
-          name: costSource
-          description: The cost source of the billable unit
-          required: true
-          schema:
-            $ref: '#/components/schemas/IncomingBillableUnitCostSource'
-      responses:
-        '200':
-          description: updated billing proposal
-          content:
-            application/json:
-              schema:
-                type: object
-                items:
-                  $ref: '#/components/schemas/BillingProposalFullGetDtoV2'
-        '400':
-          description: bad input parameter
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: billing proposal not found
           content:
             application/problem+json:
               schema:
